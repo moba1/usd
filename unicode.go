@@ -58,8 +58,9 @@ func ReadUtf8Char(buf *bufio.Reader) (rune, []byte, error) {
 	}
 
 	if b1 <= 0b0111_1111 {
-		r, _ := utf8.DecodeRune([]byte{b1})
-		return r, nil, nil
+		seqs := []byte{b1}
+		r, _ := utf8.DecodeRune(seqs)
+		return r, seqs, nil
 	}
 
 	readRemainBytes := func(n int) ([]byte, error) {
