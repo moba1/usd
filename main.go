@@ -14,15 +14,15 @@ import (
 
 func main() {
 	const (
-		utf8CmdName = "utf8"
-		utf16CmdName ="utf16"
+		utf8CmdName  = "utf8"
+		utf16CmdName = "utf16"
 		utf32CmdName = "utf32"
 	)
 	utf8Cmd := flag.NewFlagSet(utf8CmdName, flag.ExitOnError)
 	utf16Cmd := flag.NewFlagSet(utf16CmdName, flag.ExitOnError)
 	utf32Cmd := flag.NewFlagSet(utf32CmdName, flag.ExitOnError)
 	var (
-		subCmd string
+		subCmd     string
 		subCmdArgs []string
 	)
 	if len(os.Args) < 2 {
@@ -33,7 +33,7 @@ func main() {
 		subCmdArgs = os.Args[2:]
 	}
 	var (
-		reader func(*bufio.Reader) (rune, []byte, error)
+		reader      func(*bufio.Reader) (rune, []byte, error)
 		parseEndian = func(endianHolder *Endian, s string) error {
 			switch s {
 			case "Big":
@@ -52,20 +52,20 @@ func main() {
 		reader = ReadUtf8Char
 	case utf16CmdName:
 		var endian Endian = BigEndian
-		utf16Cmd.Func("endian", "UTF16 endian", func (s string) error {
+		utf16Cmd.Func("endian", "UTF16 endian", func(s string) error {
 			return parseEndian(&endian, s)
 		})
 		utf16Cmd.Parse(subCmdArgs)
-		reader = func (buf *bufio.Reader) (rune, []byte, error) {
+		reader = func(buf *bufio.Reader) (rune, []byte, error) {
 			return ReadUtf16Char(endian, buf)
 		}
 	case utf32CmdName:
 		var endian Endian = BigEndian
-		utf32Cmd.Func("endian", "UTF32 endian", func (s string) error {
+		utf32Cmd.Func("endian", "UTF32 endian", func(s string) error {
 			return parseEndian(&endian, s)
 		})
 		utf32Cmd.Parse(subCmdArgs)
-		reader = func (buf *bufio.Reader) (rune, []byte, error) {
+		reader = func(buf *bufio.Reader) (rune, []byte, error) {
 			return ReadUtf32Char(endian, buf)
 		}
 	default:
