@@ -9,7 +9,7 @@ import (
 
 type TSVTableEncoder struct {
 	writer io.Writer
-	lines [][]string
+	lines  [][]string
 	header []string
 }
 

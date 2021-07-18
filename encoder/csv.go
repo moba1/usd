@@ -8,14 +8,14 @@ import (
 
 type CSVTableEncoder struct {
 	writer *csv.Writer
-	lines [][]string
+	lines  [][]string
 	header []string
 }
 
 func NewCSVTableEncoder(w io.Writer) *CSVTableEncoder {
 	return &CSVTableEncoder{
 		writer: csv.NewWriter(w),
-		lines: [][]string{},
+		lines:  [][]string{},
 		header: []string{},
 	}
 }
