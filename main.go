@@ -110,7 +110,7 @@ func init() {
 		reader = ReadUtf8Char
 	case utf16CmdName:
 		var endian Endian = BigEndian
-		utf16Cmd.Func("endian", "UTF16 endian. default is `Big` (value: Big|Little)", func(s string) error {
+		utf16Cmd.Func("endian", "UTF16 `endian`. default is 'Big' (value: Big|Little)", func(s string) error {
 			return parseEndian(&endian, s)
 		})
 		utf16Cmd.Usage = func() {
@@ -132,7 +132,7 @@ func init() {
 		}
 	case utf32CmdName:
 		var endian Endian = BigEndian
-		utf32Cmd.Func("endian", "UTF32 endian. default is `Big` (value: Big|Little)", func(s string) error {
+		utf32Cmd.Func("endian", "UTF32 `endian`. default is 'Big' (value: Big|Little)", func(s string) error {
 			return parseEndian(&endian, s)
 		})
 		utf32Cmd.Usage = func() {
