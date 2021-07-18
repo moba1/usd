@@ -31,4 +31,3 @@ func (f FileType) Encoder(w io.Writer) TableEncoder {
 	log.Fatalf("unsupported file type: %d", f)
 	return nil // unreachable
 }
-
