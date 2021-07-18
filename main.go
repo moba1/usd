@@ -17,6 +17,7 @@ import (
 var (
 	reader   func(*bufio.Reader) (rune, []byte, error)
 	fileType encoder.FileType
+	noHeader bool
 )
 
 func init() {
@@ -61,6 +62,7 @@ func init() {
 		}
 		return nil
 	})
+	flag.BoolVar(&noHeader, "noHeader", false, "no header")
 	flag.Parse()
 	args := flag.Args()
 
@@ -158,7 +160,9 @@ func init() {
 
 func main() {
 	runeTable := fileType.Encoder(os.Stdout)
-	runeTable.SetHeader([]string{"Character", "Code Point", "Name", "Hex"})
+	if !noHeader {
+		runeTable.SetHeader([]string{"Character", "Code Point", "Name", "Hex"})
+	}
 
 	buf := bufio.NewReader(os.Stdin)
 	for {
