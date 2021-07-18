@@ -1,11 +1,11 @@
 package main
 
 import (
+	_ "embed"
 	"bufio"
 	"flag"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"path"
 	"strconv"
@@ -15,30 +15,14 @@ import (
 	"golang.org/x/text/unicode/runenames"
 )
 
-type FileType int
-
-const (
-	None FileType = iota
-	CSV
-	TSV
-)
-
-func (f FileType) Encoder(w io.Writer) encoder.TableEncoder {
-	switch f {
-	case None:
-		return encoder.NewPrettyTableEncoder(w)
-	case CSV:
-		return encoder.NewCSVTableEncoder(w)
-	case TSV:
-		return encoder.NewTSVTableEncoder(w)
-	}
-	log.Fatalf("unsupported file type: %d", f)
-	return nil // unreachable
-}
+//go:embed version
+var version string
 
 var (
 	reader   func(*bufio.Reader) (rune, []byte, error)
-	fileType FileType
+	fileType encoder.FileType
+	noHeader bool
+	showVersion bool
 )
 
 func init() {
@@ -70,20 +54,26 @@ func init() {
 		}
 		flag.PrintDefaults()
 	}
+	flag.BoolVar(&showVersion, "version", false, "show version")
 	flag.Func("fileType", "output file type. default is None (value: CSV|TSV|None)", func(s string) error {
 		switch s {
 		case "CSV":
-			fileType = CSV
+			fileType = encoder.CSV
 		case "TSV":
-			fileType = TSV
+			fileType = encoder.TSV
 		case "None":
-			fileType = None
+			fileType = encoder.None
 		default:
 			return fmt.Errorf("invalid file type: %s", s)
 		}
 		return nil
 	})
+	flag.BoolVar(&noHeader, "noHeader", false, "no header")
 	flag.Parse()
+	if showVersion {
+		fmt.Println(version)
+		os.Exit(0)
+	}
 	args := flag.Args()
 
 	utf8Cmd := flag.NewFlagSet(utf8CmdName, flag.ExitOnError)
@@ -130,7 +120,7 @@ func init() {
 		reader = ReadUtf8Char
 	case utf16CmdName:
 		var endian Endian = BigEndian
-		utf16Cmd.Func("endian", "UTF16 endian. default is `Big` (value: Big|Little)", func(s string) error {
+		utf16Cmd.Func("endian", "UTF16 `endian`. default is 'Big' (value: Big|Little)", func(s string) error {
 			return parseEndian(&endian, s)
 		})
 		utf16Cmd.Usage = func() {
@@ -152,7 +142,7 @@ func init() {
 		}
 	case utf32CmdName:
 		var endian Endian = BigEndian
-		utf32Cmd.Func("endian", "UTF32 endian. default is `Big` (value: Big|Little)", func(s string) error {
+		utf32Cmd.Func("endian", "UTF32 `endian`. default is 'Big' (value: Big|Little)", func(s string) error {
 			return parseEndian(&endian, s)
 		})
 		utf32Cmd.Usage = func() {
@@ -180,7 +170,9 @@ func init() {
 
 func main() {
 	runeTable := fileType.Encoder(os.Stdout)
-	runeTable.SetHeader([]string{"Character", "Code Point", "Name", "Hex"})
+	if !noHeader {
+		runeTable.SetHeader([]string{"Character", "Code Point", "Name", "Hex"})
+	}
 
 	buf := bufio.NewReader(os.Stdin)
 	for {
