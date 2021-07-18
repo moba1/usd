@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"path"
 	"strconv"
@@ -15,30 +14,9 @@ import (
 	"golang.org/x/text/unicode/runenames"
 )
 
-type FileType int
-
-const (
-	None FileType = iota
-	CSV
-	TSV
-)
-
-func (f FileType) Encoder(w io.Writer) encoder.TableEncoder {
-	switch f {
-	case None:
-		return encoder.NewPrettyTableEncoder(w)
-	case CSV:
-		return encoder.NewCSVTableEncoder(w)
-	case TSV:
-		return encoder.NewTSVTableEncoder(w)
-	}
-	log.Fatalf("unsupported file type: %d", f)
-	return nil // unreachable
-}
-
 var (
 	reader   func(*bufio.Reader) (rune, []byte, error)
-	fileType FileType
+	fileType encoder.FileType
 )
 
 func init() {
@@ -73,11 +51,11 @@ func init() {
 	flag.Func("fileType", "output file type. default is None (value: CSV|TSV|None)", func(s string) error {
 		switch s {
 		case "CSV":
-			fileType = CSV
+			fileType = encoder.CSV
 		case "TSV":
-			fileType = TSV
+			fileType = encoder.TSV
 		case "None":
-			fileType = None
+			fileType = encoder.None
 		default:
 			return fmt.Errorf("invalid file type: %s", s)
 		}
