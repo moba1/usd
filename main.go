@@ -5,17 +5,43 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"path"
 	"strconv"
+	"strings"
 
-	"github.com/olekukonko/tablewriter"
+	"github.com/moba1/usd/encoder"
 	"golang.org/x/text/unicode/runenames"
 )
 
-var reader func(*bufio.Reader) (rune, []byte, error)
+type FileType int
 
-func parseCmd() {
+const (
+	None FileType = iota
+	CSV
+	TSV
+)
+
+func (f FileType) Encoder(w io.Writer) encoder.TableEncoder {
+	switch f {
+	case None:
+		return encoder.NewPrettyTableEncoder(w)
+	case CSV:
+		return encoder.NewCSVTableEncoder(w)
+	case TSV:
+		return encoder.NewTSVTableEncoder(w)
+	}
+	log.Fatalf("unsupported file type: %d", f)
+	return nil // unreachable
+}
+
+var (
+	reader   func(*bufio.Reader) (rune, []byte, error)
+	fileType FileType
+)
+
+func init() {
 	const (
 		utf8CmdName  = "utf8"
 		utf16CmdName = "utf16"
@@ -44,6 +70,19 @@ func parseCmd() {
 		}
 		flag.PrintDefaults()
 	}
+	flag.Func("fileType", "output file type. default is None (value: CSV|TSV|None)", func(s string) error {
+		switch s {
+		case "CSV":
+			fileType = CSV
+		case "TSV":
+			fileType = TSV
+		case "None":
+			fileType = None
+		default:
+			return fmt.Errorf("invalid file type: %s", s)
+		}
+		return nil
+	})
 	flag.Parse()
 	args := flag.Args()
 
@@ -140,11 +179,10 @@ func parseCmd() {
 }
 
 func main() {
-	parseCmd()
+	runeTable := fileType.Encoder(os.Stdout)
+	runeTable.SetHeader([]string{"Character", "Code Point", "Name", "Hex"})
 
 	buf := bufio.NewReader(os.Stdin)
-	runeTable := tablewriter.NewWriter(os.Stdout)
-	runeTable.SetHeader([]string{"Character", "Code Point", "Name", "Hex"})
 	for {
 		c, bs, err := reader(buf)
 		if err == io.EOF {
@@ -155,14 +193,18 @@ func main() {
 		}
 
 		toHexString := func(bs []byte) string {
-			s := ""
+			hexes := []string{}
 			for _, b := range bs {
-				s = fmt.Sprintf("%s\\x%x", s, b)
+				hexes = append(hexes, fmt.Sprintf("0x%02X", b))
 			}
-			return s
+			return strings.Join(hexes, " ")
+		}
+		graphic := strings.Trim(strconv.QuoteRuneToGraphic(c), "'")
+		if c == '\'' {
+			graphic = "'"
 		}
 		runeTable.Append([]string{
-			strconv.QuoteToGraphic(string(c)),
+			graphic,
 			fmt.Sprintf("%U", c),
 			runenames.Name(c),
 			toHexString(bs),
