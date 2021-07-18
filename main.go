@@ -93,7 +93,7 @@ func init() {
 		subCmd     string
 		subCmdArgs []string
 	)
-	if len(args) < 2 {
+	if len(args) < 1 {
 		subCmd = utf8CmdName
 		subCmdArgs = []string{}
 	} else {
