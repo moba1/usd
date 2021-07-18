@@ -51,15 +51,16 @@ func readMultiByte(buf *bufio.Reader, bs []byte) error {
 	return err
 }
 
-func ReadUtf8Char(buf *bufio.Reader) (rune, error) {
+func ReadUtf8Char(buf *bufio.Reader) (rune, []byte, error) {
 	b1, err := buf.ReadByte()
 	if err != nil {
-		return 0, err
+		return 0, nil, err
 	}
 
 	if b1 <= 0b0111_1111 {
-		r, _ := utf8.DecodeRune([]byte{b1})
-		return r, nil
+		seqs := []byte{b1}
+		r, _ := utf8.DecodeRune(seqs)
+		return r, seqs, nil
 	}
 
 	readRemainBytes := func(n int) ([]byte, error) {
@@ -93,7 +94,7 @@ func ReadUtf8Char(buf *bufio.Reader) (rune, error) {
 	} else if b1&0b1111_1000 == 0b1111_0000 {
 		readByte = 3
 	} else {
-		return 0, &InvalidSequenceErr{
+		return 0, nil, &InvalidSequenceErr{
 			sequences: []byte{b1},
 		}
 	}
@@ -102,16 +103,16 @@ func ReadUtf8Char(buf *bufio.Reader) (rune, error) {
 		err = &UnexpectedEofErr{}
 	}
 	if err != nil {
-		return 0, err
+		return 0, nil, err
 	}
 	r, err := toRune(b1, remainBytes)
 	if err != nil {
-		return 0, err
+		return 0, nil, err
 	}
-	return r, nil
+	return r, append([]byte{b1}, remainBytes...), nil
 }
 
-func ReadUtf16Char(endian Endian, buf *bufio.Reader) (rune, error) {
+func ReadUtf16Char(endian Endian, buf *bufio.Reader) (rune, []byte, error) {
 	readChar := func() ([]byte, error) {
 		bs := make([]byte, 2)
 		if err := readMultiByte(buf, bs); err != nil {
@@ -134,11 +135,11 @@ func ReadUtf16Char(endian Endian, buf *bufio.Reader) (rune, error) {
 
 	r1Bytes, err := readChar()
 	if err != nil {
-		return 0, err
+		return 0, nil, err
 	}
 	r1, err := toUint16(r1Bytes)
 	if err != nil {
-		return 0, err
+		return 0, nil, err
 	}
 	if 0xD800 <= r1 && r1 <= 0xDBFF {
 		r2Bytes, err := readChar()
@@ -146,28 +147,27 @@ func ReadUtf16Char(endian Endian, buf *bufio.Reader) (rune, error) {
 			err = &UnexpectedEofErr{}
 		}
 		if err != nil {
-			return 0, err
+			return 0, nil, err
 		}
 		r2, err := toUint16(r2Bytes)
 		if err != nil {
-			return 0, err
+			return 0, nil, err
 		}
 		if !(0xDC00 <= r2 && r2 <= 0xDFFF) {
-			return 0, &InvalidSequenceErr{
+			return 0, nil, &InvalidSequenceErr{
 				sequences: append(r1Bytes, r2Bytes...),
 			}
 		}
-		return utf16.Decode([]uint16{r1, r2})[0], err
+		return utf16.Decode([]uint16{r1, r2})[0], append(r1Bytes, r2Bytes...), nil
 	}
 
-	return utf16.Decode([]uint16{r1})[0], err
+	return utf16.Decode([]uint16{r1})[0], r1Bytes, nil
 }
 
-func ReadUtf32Char(endian Endian, buf *bufio.Reader) (rune, error) {
+func ReadUtf32Char(endian Endian, buf *bufio.Reader) (rune, []byte, error) {
 	bs := make([]byte, 4)
-	err := readMultiByte(buf, bs)
-	if err != nil {
-		return 0, err
+	if err := readMultiByte(buf, bs); err != nil {
+		return 0, nil, err
 	}
 
 	readInt32 := func(data []byte, endian binary.ByteOrder) (int32, error) {
@@ -189,11 +189,11 @@ func ReadUtf32Char(endian Endian, buf *bufio.Reader) (rune, error) {
 	case BigEndian:
 		e = binary.BigEndian
 	default:
-		return 0, &UnknownEndianErr{}
+		return 0, nil, &UnknownEndianErr{}
 	}
 	r, readInt32Err := readInt32(bs, e)
 	if readInt32Err != nil {
-		return 0, readInt32Err
+		return 0, nil, readInt32Err
 	}
-	return r, err
+	return r, bs, nil
 }
