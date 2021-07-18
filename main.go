@@ -14,10 +14,13 @@ import (
 	"golang.org/x/text/unicode/runenames"
 )
 
+const version = "0.1.0"
+
 var (
 	reader   func(*bufio.Reader) (rune, []byte, error)
 	fileType encoder.FileType
 	noHeader bool
+	showVersion bool
 )
 
 func init() {
@@ -49,6 +52,7 @@ func init() {
 		}
 		flag.PrintDefaults()
 	}
+	flag.BoolVar(&showVersion, "version", false, "show version")
 	flag.Func("fileType", "output file type. default is None (value: CSV|TSV|None)", func(s string) error {
 		switch s {
 		case "CSV":
@@ -64,6 +68,10 @@ func init() {
 	})
 	flag.BoolVar(&noHeader, "noHeader", false, "no header")
 	flag.Parse()
+	if showVersion {
+		fmt.Println(version)
+		os.Exit(0)
+	}
 	args := flag.Args()
 
 	utf8Cmd := flag.NewFlagSet(utf8CmdName, flag.ExitOnError)
