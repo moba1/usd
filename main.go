@@ -1,6 +1,7 @@
 package main
 
 import (
+	_ "embed"
 	"bufio"
 	"flag"
 	"fmt"
@@ -14,7 +15,8 @@ import (
 	"golang.org/x/text/unicode/runenames"
 )
 
-const version = "0.1.0"
+//go:embed version
+var version string
 
 var (
 	reader   func(*bufio.Reader) (rune, []byte, error)
