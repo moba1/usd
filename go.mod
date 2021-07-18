@@ -1,4 +1,4 @@
-module github.com/moba1/uod
+module github.com/moba1/usd
 
 go 1.16
 
