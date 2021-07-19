@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"path"
 	"strconv"
@@ -203,5 +204,7 @@ func main() {
 			toHexString(bs),
 		})
 	}
-	runeTable.Render()
+	if err := runeTable.Render(); err != nil {
+		log.Fatalln(err)
+	}
 }

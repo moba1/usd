@@ -25,6 +25,7 @@ func (pte *PrettyTableEncoder) Append(row []string) {
 	pte.tableWriter.Append(row)
 }
 
-func (pte *PrettyTableEncoder) Render() {
+func (pte *PrettyTableEncoder) Render() error {
 	pte.tableWriter.Render()
+	return nil
 }
