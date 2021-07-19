@@ -1,17 +1,19 @@
 package main
 
 import (
-	_ "embed"
 	"bufio"
+	_ "embed"
 	"flag"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"path"
 	"strconv"
 	"strings"
 
 	"github.com/moba1/usd/encoder"
+	"github.com/moba1/usd/unicode"
 	"golang.org/x/text/unicode/runenames"
 )
 
@@ -19,9 +21,9 @@ import (
 var version string
 
 var (
-	reader   func(*bufio.Reader) (rune, []byte, error)
-	fileType encoder.FileType
-	noHeader bool
+	reader      func(*bufio.Reader) (rune, []byte, error)
+	fileType    encoder.FileType
+	noHeader    bool
 	showVersion bool
 )
 
@@ -90,12 +92,12 @@ func init() {
 		subCmd = args[0]
 		subCmdArgs = args[1:]
 	}
-	var parseEndian = func(endianHolder *Endian, s string) error {
+	var parseEndian = func(endianHolder *unicode.Endian, s string) error {
 		switch s {
 		case "Big":
-			*endianHolder = BigEndian
+			*endianHolder = unicode.BigEndian
 		case "Little":
-			*endianHolder = LittleEndian
+			*endianHolder = unicode.LittleEndian
 		default:
 			return fmt.Errorf("invalid endian: %s", s)
 		}
@@ -117,9 +119,9 @@ func init() {
 			utf8Cmd.PrintDefaults()
 		}
 		utf8Cmd.Parse(subCmdArgs)
-		reader = ReadUtf8Char
+		reader = unicode.ReadUtf8Char
 	case utf16CmdName:
-		var endian Endian = BigEndian
+		var endian unicode.Endian = unicode.BigEndian
 		utf16Cmd.Func("endian", "UTF16 `endian`. default is 'Big' (value: Big|Little)", func(s string) error {
 			return parseEndian(&endian, s)
 		})
@@ -138,10 +140,10 @@ func init() {
 		}
 		utf16Cmd.Parse(subCmdArgs)
 		reader = func(buf *bufio.Reader) (rune, []byte, error) {
-			return ReadUtf16Char(endian, buf)
+			return unicode.ReadUtf16Char(endian, buf)
 		}
 	case utf32CmdName:
-		var endian Endian = BigEndian
+		var endian unicode.Endian = unicode.BigEndian
 		utf32Cmd.Func("endian", "UTF32 `endian`. default is 'Big' (value: Big|Little)", func(s string) error {
 			return parseEndian(&endian, s)
 		})
@@ -160,7 +162,7 @@ func init() {
 		}
 		utf32Cmd.Parse(subCmdArgs)
 		reader = func(buf *bufio.Reader) (rune, []byte, error) {
-			return ReadUtf32Char(endian, buf)
+			return unicode.ReadUtf32Char(endian, buf)
 		}
 	default:
 		println(fmt.Sprintf("invalid command: %s", subCmd))
@@ -202,5 +204,7 @@ func main() {
 			toHexString(bs),
 		})
 	}
-	runeTable.Render()
+	if err := runeTable.Render(); err != nil {
+		log.Fatalln(err)
+	}
 }

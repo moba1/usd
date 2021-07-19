@@ -2,13 +2,12 @@ package encoder
 
 import (
 	"io"
-	"log"
 )
 
 type TableEncoder interface {
 	SetHeader([]string)
 	Append([]string)
-	Render()
+	Render() error
 }
 
 type FileType int
@@ -28,7 +27,5 @@ func (f FileType) Encoder(w io.Writer) TableEncoder {
 	case TSV:
 		return NewTSVTableEncoder(w)
 	}
-	log.Fatalf("unsupported file type: %d", f)
-	return nil // unreachable
+	return nil
 }
-
