@@ -54,9 +54,6 @@ func ReadUtf8Char(buf *bufio.Reader) (rune, []byte, error) {
 		}
 	}
 	remainBytes, err := readRemainBytes(readByte)
-	if err == io.EOF {
-		err = &UnexpectedEofErr{}
-	}
 	if err != nil {
 		return 0, nil, err
 	}
