@@ -2,8 +2,8 @@ package encoder
 
 import (
 	"encoding/csv"
+	"fmt"
 	"io"
-	"log"
 )
 
 type CSVTableEncoder struct {
@@ -28,16 +28,17 @@ func (cte *CSVTableEncoder) Append(row []string) {
 	cte.lines = append(cte.lines, row)
 }
 
-func (cte *CSVTableEncoder) Render() {
+func (cte *CSVTableEncoder) Render() error {
 	if len(cte.header) > 0 {
 		if err := cte.writer.Write(cte.header); err != nil {
-			log.Fatalf("can't write csv header: %s\n", err.Error())
+			return fmt.Errorf("can't write csv header (reason; %s)", err.Error())
 		}
 	}
 	for _, line := range cte.lines {
 		if err := cte.writer.Write(line); err != nil {
-			log.Fatalf("can't write csv: %s\n", err.Error())
+			return fmt.Errorf("can't write csv row (reason; %s)", err.Error())
 		}
 	}
 	cte.writer.Flush()
+	return nil
 }

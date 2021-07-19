@@ -3,7 +3,6 @@ package encoder
 import (
 	"fmt"
 	"io"
-	"log"
 	"strings"
 )
 
@@ -27,15 +26,16 @@ func (tte *TSVTableEncoder) Append(row []string) {
 	tte.lines = append(tte.lines, row)
 }
 
-func (tte *TSVTableEncoder) Render() {
+func (tte *TSVTableEncoder) Render() error {
 	if len(tte.header) > 0 {
 		if _, err := fmt.Fprintln(tte.writer, strings.Join(tte.header, "\t")); err != nil {
-			log.Fatalf("cannot write tsv header: %s\n", err.Error())
+			return fmt.Errorf("cannot write tsv header (reason; %s)", err.Error())
 		}
 	}
 	for _, line := range tte.lines {
 		if _, err := fmt.Fprintln(tte.writer, strings.Join(line, "\t")); err != nil {
-			log.Fatalf("cannot write tsv header: %s\n", err.Error())
+			return fmt.Errorf("cannot write tsv row (reason; %s)", err.Error())
 		}
 	}
+	return nil
 }

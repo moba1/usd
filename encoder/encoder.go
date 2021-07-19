@@ -7,7 +7,7 @@ import (
 type TableEncoder interface {
 	SetHeader([]string)
 	Append([]string)
-	Render()
+	Render() error
 }
 
 type FileType int

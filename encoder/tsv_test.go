@@ -23,7 +23,9 @@ func TestTSVTableEncoder_Render(t *testing.T) {
 	for _, r := range rows {
 		cte.Append(r)
 	}
-	cte.Render()
+	if err := cte.Render(); err != nil {
+		t.Fatalf("error occured at TSVTableEncoder.Render (%v)", err)
+	}
 
 	expectedTSVTable := fmt.Sprintln(strings.Join(header, "\t"))
 	for _, r := range rows {
@@ -31,7 +33,7 @@ func TestTSVTableEncoder_Render(t *testing.T) {
 	}
 	returnTSVTable, err := ioutil.ReadAll(buf)
 	if err != nil {
-		t.Errorf("error occured at buf.ReadString: %v", err)
+		t.Errorf("error occured at ioutil.ReadAll(buf) (%v)", err)
 	}
 	if expectedTSVTable != string(returnTSVTable) {
 		t.Errorf("expected CSV Table: %q, but CSVTableEncoder.Render return: %q", expectedTSVTable, returnTSVTable)
