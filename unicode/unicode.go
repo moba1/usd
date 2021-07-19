@@ -3,7 +3,6 @@ package unicode
 import (
 	"bufio"
 	"fmt"
-	"io"
 )
 
 type Endian int
@@ -39,10 +38,8 @@ func (*UnexpectedEofErr) Error() string {
 
 func readMultiByte(buf *bufio.Reader, bs []byte) error {
 	n, err := buf.Read(bs)
-	if 0 < n && n < len(bs) && err == io.EOF {
-		return &InvalidSequenceErr{
-			sequences: bs,
-		}
+	if 0 < n && n < len(bs) {
+		return &UnexpectedEofErr{}
 	}
 	return err
 }
