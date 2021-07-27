@@ -1,3 +1,4 @@
+[![test](https://github.com/moba1/usd/actions/workflows/test.yml/badge.svg)](https://github.com/moba1/usd/actions/workflows/test.yml)
 # unicode symbol dumper
 
 This program dumps unicode symbol.
