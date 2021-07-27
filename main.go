@@ -118,7 +118,9 @@ func init() {
 			}
 			utf8Cmd.PrintDefaults()
 		}
-		utf8Cmd.Parse(subCmdArgs)
+		if err := utf8Cmd.Parse(subCmdArgs); err != nil {
+			log.Fatalln(err)
+		}
 		reader = unicode.ReadUtf8Char
 	case utf16CmdName:
 		var endian unicode.Endian = unicode.BigEndian
@@ -138,7 +140,9 @@ func init() {
 			}
 			utf16Cmd.PrintDefaults()
 		}
-		utf16Cmd.Parse(subCmdArgs)
+		if err := utf16Cmd.Parse(subCmdArgs); err != nil {
+			log.Fatalln(err)
+		}
 		reader = func(buf *bufio.Reader) (rune, []byte, error) {
 			return unicode.ReadUtf16Char(endian, buf)
 		}
@@ -160,7 +164,9 @@ func init() {
 			}
 			utf32Cmd.PrintDefaults()
 		}
-		utf32Cmd.Parse(subCmdArgs)
+		if err := utf32Cmd.Parse(subCmdArgs); err != nil {
+			log.Fatalln(err)
+		}
 		reader = func(buf *bufio.Reader) (rune, []byte, error) {
 			return unicode.ReadUtf32Char(endian, buf)
 		}

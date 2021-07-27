@@ -50,7 +50,7 @@ func TestReadUtf8Char(t *testing.T) {
 	}
 
 	// when unicode.ReadUtf8Char read empty stream, return io.EOF
-	r, bs, err = unicode.ReadUtf8Char(bufio.NewReader(bytes.NewBuffer([]byte{})))
+	_, _, err = unicode.ReadUtf8Char(bufio.NewReader(bytes.NewBuffer([]byte{})))
 	if err != io.EOF {
 		t.Errorf("unicode.ReadUtf8Char read empty byte stream, but return non EOF error")
 	}
@@ -63,7 +63,7 @@ func TestReadUtf8Char(t *testing.T) {
 		0xFE, // invalid sequence
 	}
 	buf = bufio.NewReader(bytes.NewBuffer(origSeqs))
-	r, bs, err = unicode.ReadUtf8Char(buf)
+	_, _, err = unicode.ReadUtf8Char(buf)
 	var invalidSequenceErr *unicode.InvalidSequenceErr
 	if !errors.As(err, &invalidSequenceErr) {
 		t.Errorf("unicode.ReadUtf8Char read invalid sequences: %v", origSeqs)
@@ -74,7 +74,7 @@ func TestReadUtf8Char(t *testing.T) {
 		0xF0, 0x9F, 0x9B,
 	}
 	buf = bufio.NewReader(bytes.NewBuffer(origSeqs))
-	r, bs, err = unicode.ReadUtf8Char(buf)
+	_, _, err = unicode.ReadUtf8Char(buf)
 	var unexpectedEofErr *unicode.UnexpectedEofErr
 	if !errors.As(err, &unexpectedEofErr) {
 		t.Errorf("unicode.ReadUtf8Char read invalid sequences: %v", origSeqs)
@@ -82,7 +82,7 @@ func TestReadUtf8Char(t *testing.T) {
 
 	// I/O error occured
 	buf = bufio.NewReader(iotest.ErrReader(errors.New("general I/O error")))
-	r, bs, err = unicode.ReadUtf8Char(buf)
+	_, _, err = unicode.ReadUtf8Char(buf)
 	if err == nil {
 		t.Error("unicode.ReadUtf8Char ignore I/O error")
 	}

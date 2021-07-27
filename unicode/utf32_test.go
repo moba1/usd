@@ -46,7 +46,7 @@ func testReadUtf32Char(endian unicode.Endian, cases TestCases, t *testing.T) {
 	}
 
 	// when ReadUtf8Char read empty stream, return io.EOF
-	r, bs, err = reader(bufio.NewReader(bytes.NewBuffer([]byte{})))
+	_, _, err = reader(bufio.NewReader(bytes.NewBuffer([]byte{})))
 	if err != io.EOF {
 		t.Errorf("ReadUtf32Char read empty byte stream, but return non EOF error")
 	}
@@ -57,7 +57,7 @@ func testReadUtf32Char(endian unicode.Endian, cases TestCases, t *testing.T) {
 	// including invalid byte
 	for _, c := range cases.fail.invalidSequeces {
 		buf = bufio.NewReader(bytes.NewBuffer(c))
-		r, bs, err = reader(buf)
+		_, _, err = reader(buf)
 		var invalidSequenceErr *unicode.InvalidSequenceErr
 		if !errors.As(err, &invalidSequenceErr) {
 			t.Errorf("ReadUtf32Char read invalid sequences: %v", cases.fail.invalidSequeces)
@@ -67,7 +67,7 @@ func testReadUtf32Char(endian unicode.Endian, cases TestCases, t *testing.T) {
 	// lack needed byt_Litte
 	for _, c := range cases.fail.lackedSeqences {
 		buf = bufio.NewReader(bytes.NewBuffer(c))
-		r, bs, err = reader(buf)
+		_, _, err = reader(buf)
 		var unexpectedEofErr *unicode.UnexpectedEofErr
 		if !errors.As(err, &unexpectedEofErr) {
 			t.Errorf("ReadUtf32Char read short sequences: %v", c)
